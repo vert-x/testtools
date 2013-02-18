@@ -1,4 +1,4 @@
-package io.vertx.testtools;/*
+package org.vertx.testtools;/*
  * Copyright 2013 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0

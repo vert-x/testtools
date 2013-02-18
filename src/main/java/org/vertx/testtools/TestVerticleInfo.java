@@ -1,4 +1,4 @@
-package io.vertx.testtools;
+package org.vertx.testtools;
 /*
  * Copyright 2013 Red Hat, Inc.
  *
@@ -17,18 +17,14 @@ package io.vertx.testtools;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 
-import org.junit.runner.RunWith;
-import org.vertx.java.platform.Verticle;
+import java.lang.annotation.*;
 
-import java.lang.reflect.Method;
-
-@RunWith(JavaClassRunner.class)
-public abstract class TestVerticle extends Verticle {
-
-  public void start() throws Exception {
-    String methodName = container.getConfig().getString("methodName");
-    VertxAssert.initialize(vertx);
-    Method m = getClass().getDeclaredMethod(methodName);
-    m.invoke(this);
-  }
+@Documented
+@Inherited
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.METHOD})
+public @interface TestVerticleInfo {
+  String scriptsDirectory() default "src/test/resources";
+  String filenameFilter();
+  String funcRegex();
 }
