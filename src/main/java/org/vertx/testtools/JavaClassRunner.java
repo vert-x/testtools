@@ -53,6 +53,13 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
 
   private static final Logger log = LoggerFactory.getLogger(JavaClassRunner.class);
 
+  protected static final long TIMEOUT;
+  private static final long DEFAULT_TIMEOUT = 300;
+  static {
+    String timeout = System.getProperty("vertx.test.timeout");
+    TIMEOUT = timeout == null ? DEFAULT_TIMEOUT : Long.valueOf(timeout);
+  }
+
   private final PlatformManager mgr;
 
   protected String main;
@@ -153,7 +160,7 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
   private void waitForLatch(CountDownLatch latch) {
     while (true) {
       try {
-        if (!latch.await(300, TimeUnit.SECONDS)) {
+        if (!latch.await(TIMEOUT, TimeUnit.SECONDS)) {
           throw new IllegalStateException("Timed out waiting for test");
         }
         break;
