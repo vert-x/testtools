@@ -30,10 +30,12 @@ import java.util.regex.Pattern;
 
 public class ScriptClassRunner extends JavaClassRunner {
 
+  private static final String FILE_SEP = System.getProperty("file.separator");
+  private static final String TEST_SCRIPTS_DIR = "src/test/resources".replace("/", FILE_SEP);
+
   public ScriptClassRunner(Class<?> klass) throws InitializationError {
     super(klass);
   }
-
 
   @Override
   protected List<FrameworkMethod> getTestMethods() {
