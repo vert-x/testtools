@@ -34,6 +34,7 @@ public class ScriptClassRunner extends JavaClassRunner {
     super(klass);
   }
 
+
   @Override
   protected List<FrameworkMethod> getTestMethods() {
     List<FrameworkMethod> meths = new ArrayList<>();
@@ -49,9 +50,9 @@ public class ScriptClassRunner extends JavaClassRunner {
     if (ann == null) {
       throw new IllegalStateException("Use TestVerticleInfo annotation to specify the script to run with");
     }
-    String sscriptsDir = ann.scriptsDirectory();
+
     String funcRegex = ann.funcRegex();
-    File scriptsDir = new File(sscriptsDir);
+    File scriptsDir = new File(TEST_SCRIPTS_DIR);
     if (!scriptsDir.exists()) {
       throw new IllegalArgumentException("Scripts directory does not exist: " + scriptsDir);
     }

@@ -24,7 +24,6 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
 public @interface TestVerticleInfo {
-  String scriptsDirectory() default "src/test/resources";
   String filenameFilter();
   String funcRegex();
 }

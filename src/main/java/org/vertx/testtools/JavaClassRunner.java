@@ -34,6 +34,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.URL;
+import java.net.URLClassLoader;
+import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -90,6 +93,10 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
     return methodName;
   }
 
+  private static final String FILE_SEP = System.getProperty("file.separator");
+  protected static final String TEST_CLASSES_DIR = "build/classes/test".replace("/", FILE_SEP);
+  protected static final String TEST_SCRIPTS_DIR = "src/test/resources".replace("/", FILE_SEP);
+
   @Override
   protected void runChild(FrameworkMethod method, RunNotifier notifier) {
     Class<?> testClass = getTestClass().getJavaClass();
@@ -98,7 +105,22 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
     notifier.fireTestStarted(desc);
     final AtomicReference<AssertionError> failure = new AtomicReference<>();
     try {
-      URL[] cp = new URL[] {};
+      List<URL> urls = new ArrayList<>();
+      ClassLoader currLoader = getClass().getClassLoader();
+      if (currLoader instanceof URLClassLoader) {
+        // We add the URLs from the Gradle test classpath that correspond to the compiled tests and to any test resources
+        // to the classpath of the test verticle - otherwise it wouldn't be able to see them
+        URLClassLoader urlClassLoader = (URLClassLoader)currLoader;
+        URL[] currURLs = urlClassLoader.getURLs();
+        for (URL url: currURLs) {
+          String file = URLDecoder.decode(url.getFile(), "UTF-8");
+          if (file.contains(TEST_CLASSES_DIR) || file.contains(TEST_SCRIPTS_DIR)) {
+            urls.add(url);
+            System.out.println("Adding url: " + url);
+          }
+        }
+      }
+
       JsonObject conf = new JsonObject().putString("methodName", getActualMethodName(methodName));
       final CountDownLatch testLatch = new CountDownLatch(1);
       Handler<Message<JsonObject>> handler = new Handler<Message<JsonObject>>() {
@@ -131,7 +153,7 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
       eb.registerHandler(TESTRUNNER_HANDLER_ADDRESS, handler);
       final CountDownLatch deployLatch = new CountDownLatch(1);
       final AtomicReference<String> deploymentIDRef = new AtomicReference<>();
-      mgr.deployVerticle(getMain(methodName), conf, cp, 1, null, new Handler<String>() {
+      mgr.deployVerticle(getMain(methodName), conf, urls.toArray(new URL[urls.size()]), 1, null, new Handler<String>() {
         public void handle(String deploymentID) {
           deploymentIDRef.set(deploymentID);
           deployLatch.countDown();
