@@ -25,10 +25,14 @@ import java.lang.reflect.Method;
 @RunWith(JavaClassRunner.class)
 public abstract class TestVerticle extends Verticle {
 
-  public void start() throws Exception {
+  public void start() {
     String methodName = container.getConfig().getString("methodName");
     VertxAssert.initialize(vertx);
-    Method m = getClass().getDeclaredMethod(methodName);
-    m.invoke(this);
+    try {
+      Method m = getClass().getDeclaredMethod(methodName);
+      m.invoke(this);
+    } catch (Exception e) {
+      VertxAssert.fail("Failed to call tests " + e.getMessage());
+    }
   }
 }
