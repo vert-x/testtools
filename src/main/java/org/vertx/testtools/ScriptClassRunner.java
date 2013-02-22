@@ -41,16 +41,9 @@ public class ScriptClassRunner extends JavaClassRunner {
   protected List<FrameworkMethod> getTestMethods() {
     List<FrameworkMethod> meths = new ArrayList<>();
     Class<?> testClass = getTestClass().getJavaClass();
-    TestVerticleInfo ann = null;
-    Annotation[] anns = testClass.getAnnotations();
-    for (Annotation aann: anns) {
-      if (aann instanceof TestVerticleInfo) {
-        TestVerticleInfo tann = (TestVerticleInfo)aann;
-        ann = tann;
-      }
-    }
+    TestVerticleInfo ann = getAnnotation();
     if (ann == null) {
-      throw new IllegalStateException("Use TestVerticleInfo annotation to specify the script to run with");
+      throw new IllegalArgumentException("Please annotate your test classes with TestVerticleInfo");
     }
 
     String funcRegex = ann.funcRegex();

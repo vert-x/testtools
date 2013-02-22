@@ -33,6 +33,7 @@ import org.vertx.java.platform.PlatformManager;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLDecoder;
@@ -64,13 +65,28 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
   }
 
   private final PlatformManager mgr;
-
   protected String main;
+  private TestVerticleInfo annotation;
 
   public JavaClassRunner(Class<?> klass) throws InitializationError {
     super(klass);
     mgr = PlatformLocator.factory.createPlatformManager();
   }
+
+  protected TestVerticleInfo getAnnotation() {
+    if (annotation == null) {
+      Class<?> testClass = getTestClass().getJavaClass();
+      Annotation[] anns = testClass.getAnnotations();
+      for (Annotation aann: anns) {
+        if (aann instanceof TestVerticleInfo) {
+          TestVerticleInfo tann = (TestVerticleInfo)aann;
+          annotation = tann;
+        }
+      }
+    }
+    return annotation;
+  }
+
 
   protected List<FrameworkMethod> computeTestMethods() {
     Class<?> testClass = getTestClass().getJavaClass();
@@ -133,7 +149,17 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
       eb.registerHandler(TESTRUNNER_HANDLER_ADDRESS, handler);
       final CountDownLatch deployLatch = new CountDownLatch(1);
       final AtomicReference<String> deploymentIDRef = new AtomicReference<>();
-      mgr.deployVerticle(getMain(methodName), conf, new URL[0], 1, null, new Handler<String>() {
+      String includes;
+      TestVerticleInfo annotation = getAnnotation();
+      if (annotation != null) {
+        includes = getAnnotation().includes().trim();
+        if (includes.isEmpty()) {
+          includes = null;
+        }
+      } else {
+        includes = null;
+      }
+      mgr.deployVerticle(getMain(methodName), conf, new URL[0], 1, includes, new Handler<String>() {
         public void handle(String deploymentID) {
           deploymentIDRef.set(deploymentID);
           deployLatch.countDown();
@@ -163,7 +189,7 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
     while (true) {
       try {
         if (!latch.await(TIMEOUT, TimeUnit.SECONDS)) {
-          throw new IllegalStateException("Timed out waiting for test");
+          throw new AssertionError("Timed out waiting for test to complete");
         }
         break;
       } catch (InterruptedException e) {

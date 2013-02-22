@@ -24,6 +24,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
 public @interface TestVerticleInfo {
-  String filenameFilter();
-  String funcRegex();
+  String filenameFilter() default "";
+  String funcRegex() default "";
+  String includes() default "";
 }
