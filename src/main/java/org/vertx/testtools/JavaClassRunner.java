@@ -17,6 +17,7 @@ package org.vertx.testtools;/*
  */
 
 import org.junit.runner.Description;
+import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
@@ -137,7 +138,7 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
     String methodName = method.getName();
     Description desc = Description.createTestDescription(testClass, methodName);
     notifier.fireTestStarted(desc);
-    final AtomicReference<AssertionError> failure = new AtomicReference<>();
+    final AtomicReference<Throwable> failure = new AtomicReference<>();
     try {
       JsonObject conf = new JsonObject().putString("methodName", getActualMethodName(methodName));
       final CountDownLatch testLatch = new CountDownLatch(1);
@@ -150,15 +151,15 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
             case "done":
               break;
             case "failure":
+              //System.out.println("*** GOT A FAILURE");
               byte[] bytes = jmsg.getBinary("failure");
               // Deserialize
               try {
                 ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
-                AssertionError err = (AssertionError)ois.readObject();
+                Throwable t = (Throwable)ois.readObject();
                 // We display this since otherwise Gradle doesn't display it to stdout/stderr
-                System.err.println("Test failed: " + err.getMessage());
-                err.printStackTrace();
-                failure.set(err);
+                t.printStackTrace();
+                failure.set(t);
               } catch (ClassNotFoundException | IOException e) {
                 throw new IllegalArgumentException("Failed to deserialise error");
               }
@@ -197,8 +198,9 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
         }
       });
       waitForLatch(undeployLatch);
+
       if (failure.get() != null) {
-        throw failure.get();
+        notifier.fireTestFailure(new Failure(desc, failure.get()));
       } else {
         notifier.fireTestFinished(desc);
       }

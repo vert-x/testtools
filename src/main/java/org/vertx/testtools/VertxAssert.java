@@ -38,7 +38,7 @@ public class VertxAssert {
     VertxAssert.vertx = vertx;
   }
 
-  private static void handleError(AssertionError e) {
+  static void handleThrowable(Throwable t) {
     if (vertx == null) {
       throw new IllegalStateException("Please initialise VertxAssert before use");
     }
@@ -47,7 +47,7 @@ public class VertxAssert {
     try {
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
       ObjectOutputStream oos = new ObjectOutputStream(baos);
-      oos.writeObject(e);
+      oos.writeObject(t);
       oos.flush();
       bytes = baos.toByteArray();
     } catch (IOException ex) {
@@ -64,7 +64,7 @@ public class VertxAssert {
     try {
       Assert.assertTrue(message, condition);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -72,7 +72,7 @@ public class VertxAssert {
     try {
       Assert.assertFalse(condition);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
 
   }
@@ -81,7 +81,7 @@ public class VertxAssert {
     try {
       Assert.assertArrayEquals(message, expecteds, actuals);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -89,7 +89,7 @@ public class VertxAssert {
     try {
       Assert.assertSame(message, expected, actual);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -97,7 +97,7 @@ public class VertxAssert {
     try {
       Assert.assertEquals(expected, actual);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -105,7 +105,7 @@ public class VertxAssert {
     try {
       Assert.assertNull(object);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -113,7 +113,7 @@ public class VertxAssert {
     try {
       Assert.assertFalse(message, condition);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -121,7 +121,7 @@ public class VertxAssert {
     try {
       Assert.fail(message);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -129,7 +129,7 @@ public class VertxAssert {
     try {
       Assert.assertNull(message, object);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -137,7 +137,7 @@ public class VertxAssert {
     try {
       Assert.assertArrayEquals(message, expecteds, actuals, delta);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -146,7 +146,7 @@ public class VertxAssert {
     try {
       Assert.assertEquals(message, expected, actual);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -155,7 +155,7 @@ public class VertxAssert {
     try {
       Assert.assertArrayEquals(message, expecteds, actuals, delta);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -163,7 +163,7 @@ public class VertxAssert {
     try {
       Assert.assertArrayEquals(message, expecteds, actuals);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -171,7 +171,7 @@ public class VertxAssert {
     try {
       Assert.assertArrayEquals(message, expecteds, actuals);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -179,7 +179,7 @@ public class VertxAssert {
     try {
       Assert.assertArrayEquals(expecteds, actuals);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -187,7 +187,7 @@ public class VertxAssert {
     try {
       Assert.assertArrayEquals(expecteds, actuals);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -195,7 +195,7 @@ public class VertxAssert {
     try {
       Assert.assertNotNull(object);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -203,7 +203,7 @@ public class VertxAssert {
     try {
       Assert.assertEquals(expected, actual);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -211,7 +211,7 @@ public class VertxAssert {
     try {
       Assert.assertEquals(message, expected, actual);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -219,7 +219,7 @@ public class VertxAssert {
     try {
       Assert.assertTrue(condition);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -227,7 +227,7 @@ public class VertxAssert {
     try {
       Assert.assertArrayEquals(expecteds, actuals);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -235,7 +235,7 @@ public class VertxAssert {
     try {
       Assert.assertNotNull(message, object);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -243,7 +243,7 @@ public class VertxAssert {
     try {
       Assert.assertEquals(message, expected, actual, delta);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -251,7 +251,7 @@ public class VertxAssert {
     try {
       Assert.fail();
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -259,7 +259,7 @@ public class VertxAssert {
     try {
       Assert.assertSame(expected, actual);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -267,7 +267,7 @@ public class VertxAssert {
     try {
       Assert.assertEquals(message, expected, actual);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -275,7 +275,7 @@ public class VertxAssert {
     try {
       Assert.assertArrayEquals(message, expecteds, actuals);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -283,7 +283,7 @@ public class VertxAssert {
     try {
       Assert.assertArrayEquals(message, expecteds, actuals);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -291,7 +291,7 @@ public class VertxAssert {
     try {
       Assert.assertEquals(expected, actual, delta);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -299,7 +299,7 @@ public class VertxAssert {
     try {
       Assert.assertThat(actual, matcher);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -308,7 +308,7 @@ public class VertxAssert {
     try {
       Assert.assertEquals(message, expecteds, actuals);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -317,7 +317,7 @@ public class VertxAssert {
     try {
       Assert.assertEquals(expecteds, actuals);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -325,7 +325,7 @@ public class VertxAssert {
     try {
       Assert.assertNotSame(message, unexpected, actual);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -333,7 +333,7 @@ public class VertxAssert {
     try {
       Assert.assertThat(reason, actual, matcher);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -341,7 +341,7 @@ public class VertxAssert {
     try {
       Assert.assertArrayEquals(expecteds, actuals, delta);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -349,7 +349,7 @@ public class VertxAssert {
     try {
       Assert.assertNotSame(unexpected, actual);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -357,7 +357,7 @@ public class VertxAssert {
     try {
       Assert.assertArrayEquals(expecteds, actuals);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -365,7 +365,7 @@ public class VertxAssert {
     try {
       Assert.assertArrayEquals(expecteds, actuals);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -373,7 +373,7 @@ public class VertxAssert {
     try {
       Assert.assertArrayEquals(expecteds, actuals, delta);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -381,7 +381,7 @@ public class VertxAssert {
     try {
       Assert.assertArrayEquals(expecteds, actuals);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -390,7 +390,7 @@ public class VertxAssert {
     try {
       Assert.assertEquals(expected, actual);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 
@@ -398,7 +398,7 @@ public class VertxAssert {
     try {
       Assert.assertArrayEquals(message, expecteds, actuals);
     } catch (AssertionError e) {
-      handleError(e);
+      handleThrowable(e);
     }
   }
 }

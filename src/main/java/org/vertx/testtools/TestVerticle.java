@@ -18,12 +18,17 @@ package org.vertx.testtools;
  */
 
 import org.junit.runner.RunWith;
+import org.vertx.java.core.logging.Logger;
+import org.vertx.java.core.logging.impl.LoggerFactory;
 import org.vertx.java.platform.Verticle;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 @RunWith(JavaClassRunner.class)
 public abstract class TestVerticle extends Verticle {
+
+  private static final Logger log = LoggerFactory.getLogger(TestVerticle.class);
 
   public void start() {
     String methodName = container.getConfig().getString("methodName");
@@ -31,8 +36,13 @@ public abstract class TestVerticle extends Verticle {
     try {
       Method m = getClass().getDeclaredMethod(methodName);
       m.invoke(this);
+    } catch (InvocationTargetException e) {
+      InvocationTargetException it = (InvocationTargetException)e;
+      Throwable targetEx = it.getTargetException();
+      VertxAssert.handleThrowable(targetEx);
     } catch (Exception e) {
-      VertxAssert.fail("Failed to call tests " + e.getMessage());
+      // Problem with invoking
+      VertxAssert.handleThrowable(e);
     }
   }
 }
