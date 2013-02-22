@@ -30,15 +30,14 @@ import org.vertx.java.core.logging.impl.LoggerFactory;
 import org.vertx.java.platform.PlatformLocator;
 import org.vertx.java.platform.PlatformManager;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.*;
 import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -71,6 +70,29 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
   public JavaClassRunner(Class<?> klass) throws InitializationError {
     super(klass);
     mgr = PlatformLocator.factory.createPlatformManager();
+    setTestProperties();
+  }
+
+  private void setTestProperties() {
+    // We set the properties here, rather than letting the build script do it
+    // This means tests can run directly in an IDE with the correct properties set
+    // without having to create custom test configurations
+    File propsFile = new File("vertx.properties");
+    if (propsFile.exists()) {
+      Properties props = new Properties();
+      try (InputStream is = new FileInputStream(propsFile.getName())) {
+        props.load(is);
+        for (String propName: props.stringPropertyNames()) {
+          String propVal = props.getProperty(propName);
+          System.setProperty("vertx." + propName, propVal);
+        }
+        String moduleName= props.getProperty("repotype") + ":" + props.getProperty("groupname") + ":" +
+                           props.getProperty("artifact") + ":" + props.getProperty("version");
+        System.setProperty("vertx.modulename", moduleName);
+      } catch (IOException e) {
+        log.error("Failed to load props file", e);
+      }
+    }
   }
 
   protected TestVerticleInfo getAnnotation() {
