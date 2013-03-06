@@ -87,8 +87,8 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
           String propVal = props.getProperty(propName);
           System.setProperty("vertx." + propName, propVal);
         }
-        String moduleName= props.getProperty("repotype") + ":" + props.getProperty("groupname") + ":" +
-                           props.getProperty("artifact") + ":" + props.getProperty("version");
+        String moduleName= props.getProperty("modowner") + "#" +
+                           props.getProperty("modname") + "#" + props.getProperty("version");
         System.setProperty("vertx.modulename", moduleName);
       } catch (IOException e) {
         log.error("Failed to load props file", e);
