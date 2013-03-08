@@ -198,9 +198,11 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
         }
       });
       waitForLatch(undeployLatch);
-
       if (failure.get() != null) {
         notifier.fireTestFailure(new Failure(desc, failure.get()));
+        if (failure.get() instanceof Error) {
+          throw (Error)failure.get();
+        }
       } else {
         notifier.fireTestFinished(desc);
       }
