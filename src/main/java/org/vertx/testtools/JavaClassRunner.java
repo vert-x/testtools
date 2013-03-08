@@ -82,21 +82,22 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
     File propsFile = new File("vertx.properties");
     if (propsFile.exists()) {
       loadProps(propsFile);
-    }
-    propsFile = new File("gradle.properties");
-    if (propsFile.exists()) {
-      loadProps(propsFile);
     } else {
-      File pom = new File("pom.xml");
-      if (pom.exists()) {
-        try (Scanner scanner = new Scanner(pom).useDelimiter("\\A")) {
-          String data = scanner.next();
-          String modOwner = extractTag(data, "groupId");
-          String modName = extractTag(data, "artifactId");
-          String version = extractTag(data, "version");
-          setModuleNameProp(modOwner, modName, version);
-        } catch (FileNotFoundException e) {
-          //Ignore
+      propsFile = new File("gradle.properties");
+      if (propsFile.exists()) {
+        loadProps(propsFile);
+      } else {
+        File pom = new File("pom.xml");
+        if (pom.exists()) {
+          try (Scanner scanner = new Scanner(pom).useDelimiter("\\A")) {
+            String data = scanner.next();
+            String modOwner = extractTag(data, "groupId");
+            String modName = extractTag(data, "artifactId");
+            String version = extractTag(data, "version");
+            setModuleNameProp(modOwner, modName, version);
+          } catch (FileNotFoundException e) {
+            //Ignore
+          }
         }
       }
     }
@@ -130,7 +131,10 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
         String propVal = props.getProperty(propName);
         System.setProperty("vertx." + propName, propVal);
       }
-      setModuleNameProp(props.getProperty("modowner"), props.getProperty("modname"), props.getProperty("version"));
+      String modOwner = props.getProperty("modowner");
+      if (modOwner != null) {
+        setModuleNameProp(modOwner, props.getProperty("modname"), props.getProperty("version"));
+      }
     } catch (IOException e) {
       log.error("Failed to load props file", e);
     }
