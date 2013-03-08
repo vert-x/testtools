@@ -80,19 +80,31 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
     // without having to create custom test configurations
     File propsFile = new File("vertx.properties");
     if (propsFile.exists()) {
-      Properties props = new Properties();
-      try (InputStream is = new FileInputStream(propsFile.getName())) {
-        props.load(is);
-        for (String propName: props.stringPropertyNames()) {
-          String propVal = props.getProperty(propName);
-          System.setProperty("vertx." + propName, propVal);
-        }
-        String moduleName= props.getProperty("modowner") + "~" +
-                           props.getProperty("modname") + "~" + props.getProperty("version");
-        System.setProperty("vertx.modulename", moduleName);
-      } catch (IOException e) {
-        log.error("Failed to load props file", e);
+      loadProps(propsFile);
+    }
+    propsFile = new File("gradle.properties");
+    if (propsFile.exists()) {
+      loadProps(propsFile);
+    }
+    //TODO also parse maven pom.xml to extract groupid, artifactid and version
+  }
+
+  private void loadProps(File propsFile) {
+    // We set the properties here, rather than letting the build script do it
+    // This means tests can run directly in an IDE with the correct properties set
+    // without having to create custom test configurations
+    Properties props = new Properties();
+    try (InputStream is = new FileInputStream(propsFile.getName())) {
+      props.load(is);
+      for (String propName: props.stringPropertyNames()) {
+        String propVal = props.getProperty(propName);
+        System.setProperty("vertx." + propName, propVal);
       }
+      String moduleName= props.getProperty("modowner") + "~" +
+          props.getProperty("modname") + "~" + props.getProperty("version");
+      System.setProperty("vertx.modulename", moduleName);
+    } catch (IOException e) {
+      log.error("Failed to load props file", e);
     }
   }
 
