@@ -39,6 +39,7 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -85,8 +86,37 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
     propsFile = new File("gradle.properties");
     if (propsFile.exists()) {
       loadProps(propsFile);
+    } else {
+      File pom = new File("pom.xml");
+      if (pom.exists()) {
+        try (Scanner scanner = new Scanner(pom).useDelimiter("\\A")) {
+          String data = scanner.next();
+          String modOwner = extractTag(data, "groupId");
+          String modName = extractTag(data, "artifactId");
+          String version = extractTag(data, "version");
+          setModuleNameProp(modOwner, modName, version);
+        } catch (FileNotFoundException e) {
+          //Ignore
+        }
+      }
     }
-    //TODO also parse maven pom.xml to extract groupid, artifactid and version
+  }
+
+  private void setModuleNameProp(String modOwner, String modName, String version) {
+    String moduleName= modOwner + "~" + modName + "~" + version;
+    System.setProperty("vertx.modulename", moduleName);
+  }
+
+  private String extractTag(String data, String tag) {
+    // This will extract the _first_ instance of the tag it finds in the data
+    // Need to make sure groupId, artifactId, version are at the _top_ of the file before any
+    // other instances of those tags!!
+    // Yes, we could use an XML parser but this is a lot simpler.
+    int pos = data.indexOf("<" + tag + ">");
+    int endPos = data.indexOf("</" + tag + ">");
+    String value = data.substring(pos + tag.length() + 2, endPos);
+    System.out.println("Extracted: " + value);
+    return value;
   }
 
   private void loadProps(File propsFile) {
@@ -100,9 +130,7 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
         String propVal = props.getProperty(propName);
         System.setProperty("vertx." + propName, propVal);
       }
-      String moduleName= props.getProperty("modowner") + "~" +
-          props.getProperty("modname") + "~" + props.getProperty("version");
-      System.setProperty("vertx.modulename", moduleName);
+      setModuleNameProp(props.getProperty("modowner"), props.getProperty("modname"), props.getProperty("version"));
     } catch (IOException e) {
       log.error("Failed to load props file", e);
     }
