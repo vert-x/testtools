@@ -226,6 +226,7 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
       } else {
         includes = null;
       }
+      System.out.println("Starting test: " + methodName);
       mgr.deployVerticle(getMain(methodName), conf, new URL[0], 1, includes, new Handler<String>() {
         public void handle(String deploymentID) {
           deploymentIDRef.set(deploymentID);
