@@ -22,6 +22,10 @@ import org.junit.runners.model.InitializationError;
 
 import java.io.*;
 import java.lang.annotation.Annotation;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,6 +67,9 @@ public class ScriptClassRunner extends JavaClassRunner {
     Pattern funcPattern = Pattern.compile(funcRegex);
     Path scriptsDirPath = scriptsDir.toPath();
     for (File scriptFile: testScripts) {
+      Path scriptFilePath = scriptFile.toPath();
+      Path parent = scriptFilePath.getParent();
+      Path filename = scriptFilePath.getFileName();
       try (InputStream is = new BufferedInputStream(new FileInputStream(scriptFile))) {
         StringBuilder sb = new StringBuilder();
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
@@ -73,10 +80,8 @@ public class ScriptClassRunner extends JavaClassRunner {
         Matcher m = funcPattern.matcher(sb.toString());
         while (m.find()) {
           String methodName = m.group(1);
-          Path scriptFilePath = scriptFile.toPath();
-          Path rel = scriptsDirPath.relativize(scriptFilePath);
-          String srel = rel.toString();
-          FrameworkMethod meth = new DummyFrameWorkMethod(srel + "." + methodName);
+
+          FrameworkMethod meth = new DummyFrameWorkMethod(parent + "|" + filename + "|" + methodName);
           meths.add(meth);
         }
       } catch (IOException e) {
@@ -103,13 +108,29 @@ public class ScriptClassRunner extends JavaClassRunner {
   }
 
   @Override
+  protected String getTestName(String methodName) {
+    String[] parts = methodName.split("\\|");
+    return parts[0] + FILE_SEP + parts[1] + "#" + parts[2];
+  }
+
+  @Override
+  protected URL getClassPath(String methodName) {
+    try {
+      return new File(methodName.split("\\|")[0]).toURI().toURL();
+    } catch (MalformedURLException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+  @Override
   protected String getMain(String methodName) {
-    return methodName.substring(0, methodName.lastIndexOf('.'));
+    return methodName.split("\\|")[1];
   }
 
   @Override
   public String getActualMethodName(String methodName) {
-    return methodName.substring(methodName.lastIndexOf('.') + 1);
+    return methodName.split("\\|")[2];
   }
 
   @Override

@@ -116,7 +116,6 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
     int pos = data.indexOf("<" + tag + ">");
     int endPos = data.indexOf("</" + tag + ">");
     String value = data.substring(pos + tag.length() + 2, endPos);
-    System.out.println("Extracted: " + value);
     return value;
   }
 
@@ -168,6 +167,14 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
     return super.computeTestMethods();
   }
 
+  protected String getTestName(String methodName) {
+    return main + "." + methodName;
+  }
+
+  protected URL getClassPath(String methodName) {
+    return null;
+  }
+
   protected String getMain(String methodName) {
     return main;
   }
@@ -180,7 +187,8 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
   protected void runChild(FrameworkMethod method, RunNotifier notifier) {
     Class<?> testClass = getTestClass().getJavaClass();
     String methodName = method.getName();
-    Description desc = Description.createTestDescription(testClass, methodName);
+    String testDesc = getTestName(methodName);
+    Description desc = Description.createTestDescription(testClass, testDesc);
     notifier.fireTestStarted(desc);
     final AtomicReference<Throwable> failure = new AtomicReference<>();
     try {
@@ -195,7 +203,6 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
             case "done":
               break;
             case "failure":
-              //System.out.println("*** GOT A FAILURE");
               byte[] bytes = jmsg.getBinary("failure");
               // Deserialize
               try {
@@ -226,8 +233,10 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
       } else {
         includes = null;
       }
-      System.out.println("Starting test: " + methodName);
-      mgr.deployVerticle(getMain(methodName), conf, new URL[0], 1, includes, new Handler<String>() {
+      System.out.println("Starting test: " + testDesc);
+      String main = getMain(methodName);
+      URL cp = getClassPath(methodName);
+      mgr.deployVerticle(main, conf, cp == null ? new URL[0] : new URL[] {cp}, 1, includes, new Handler<String>() {
         public void handle(String deploymentID) {
           deploymentIDRef.set(deploymentID);
           deployLatch.countDown();
