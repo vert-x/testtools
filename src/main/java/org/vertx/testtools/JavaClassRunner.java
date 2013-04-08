@@ -196,26 +196,29 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
         public void handle(Message<JsonObject> msg) {
           JsonObject jmsg = msg.body;
           String type = jmsg.getString("type");
-          switch (type) {
+          try {
+            switch (type) {
             case "done":
               break;
             case "failure":
               byte[] bytes = jmsg.getBinary("failure");
               // Deserialize
-              try {
-                ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
-                Throwable t = (Throwable)ois.readObject();
-                // We display this since otherwise Gradle doesn't display it to stdout/stderr
-                t.printStackTrace();
-                failure.set(t);
-              } catch (ClassNotFoundException | IOException e) {
-                throw new IllegalArgumentException("Failed to deserialise error");
-              }
+              ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
+              Throwable t = (Throwable)ois.readObject();
+              // We display this since otherwise Gradle doesn't display it to stdout/stderr
+              t.printStackTrace();
+              failure.set(t);
               break;
+            }
+          } catch (ClassNotFoundException | IOException e) {
+            throw new IllegalArgumentException("Failed to deserialise error: " + e.getMessage(), e);
           }
-          testLatch.countDown();
+          finally {
+            testLatch.countDown();
+          }
         }
       };
+
       EventBus eb = mgr.getVertx().eventBus();
       eb.registerHandler(TESTRUNNER_HANDLER_ADDRESS, handler);
       final CountDownLatch deployLatch = new CountDownLatch(1);
