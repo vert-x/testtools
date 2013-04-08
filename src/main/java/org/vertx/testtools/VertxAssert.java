@@ -43,7 +43,7 @@ public class VertxAssert {
       throw new IllegalStateException("Please initialise VertxAssert before use");
     }
     //Serialize the error
-    byte[] bytes;
+    byte[] bytes = new byte[0];
     try {
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
       ObjectOutputStream oos = new ObjectOutputStream(baos);
@@ -53,7 +53,9 @@ public class VertxAssert {
     } catch (IOException ex) {
       throw new IllegalStateException("Failed to serialise error: " + ex.getMessage());
     }
-    vertx.eventBus().send(JavaClassRunner.TESTRUNNER_HANDLER_ADDRESS, new JsonObject().putString("type", "failure").putBinary("failure", bytes));
+    finally {
+      vertx.eventBus().send(JavaClassRunner.TESTRUNNER_HANDLER_ADDRESS, new JsonObject().putString("type", "failure").putBinary("failure", bytes));
+    }
   }
 
   public static void testComplete() {
