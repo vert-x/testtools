@@ -51,7 +51,7 @@ public class VertxAssert {
       oos.flush();
       bytes = baos.toByteArray();
     } catch (IOException ex) {
-      throw new IllegalStateException("Failed to serialise error");
+      throw new IllegalStateException("Failed to serialise error: " + ex.getMessage());
     }
     vertx.eventBus().send(JavaClassRunner.TESTRUNNER_HANDLER_ADDRESS, new JsonObject().putString("type", "failure").putBinary("failure", bytes));
   }
