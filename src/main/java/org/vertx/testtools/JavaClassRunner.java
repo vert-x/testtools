@@ -22,6 +22,8 @@ import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
+import org.vertx.java.core.AsyncResult;
+import org.vertx.java.core.AsyncResultHandler;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.eventbus.EventBus;
 import org.vertx.java.core.eventbus.Message;
@@ -194,7 +196,7 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
       Handler<Message<JsonObject>> handler = new Handler<Message<JsonObject>>() {
         @Override
         public void handle(Message<JsonObject> msg) {
-          JsonObject jmsg = msg.body;
+          JsonObject jmsg = msg.body();
           String type = jmsg.getString("type");
           try {
             switch (type) {
@@ -219,7 +221,7 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
         }
       };
 
-      EventBus eb = mgr.getVertx().eventBus();
+      EventBus eb = mgr.vertx().eventBus();
       eb.registerHandler(TESTRUNNER_HANDLER_ADDRESS, handler);
       final CountDownLatch deployLatch = new CountDownLatch(1);
       final AtomicReference<String> deploymentIDRef = new AtomicReference<>();
@@ -236,22 +238,37 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
       System.out.println("Starting test: " + testDesc);
       String main = getMain(methodName);
       URL cp = getClassPath(methodName);
-      mgr.deployVerticle(main, conf, cp == null ? new URL[0] : new URL[] {cp}, 1, includes, new Handler<String>() {
-        public void handle(String deploymentID) {
-          deploymentIDRef.set(deploymentID);
+      final AtomicReference<Throwable> deployThrowable = new AtomicReference<>();
+      mgr.deployVerticle(main, conf, cp == null ? new URL[0] : new URL[] {cp}, 1, includes, new AsyncResultHandler<String>() {
+        public void handle(AsyncResult<String> ar) {
+          if (ar.succeeded()) {
+            deploymentIDRef.set(ar.result());
+          } else {
+            deployThrowable.set(ar.cause());
+          }
           deployLatch.countDown();
         }
       });
       waitForLatch(deployLatch);
+      if (deployThrowable.get() != null) {
+        throw new IllegalStateException("Failed to deploy", deployThrowable.get());
+      }
       waitForLatch(testLatch);
       eb.unregisterHandler(TESTRUNNER_HANDLER_ADDRESS, handler);
       final CountDownLatch undeployLatch = new CountDownLatch(1);
-      mgr.undeploy(deploymentIDRef.get(), new Handler<Void>() {
-        public void handle(Void v) {
+      final AtomicReference<Throwable> undeployThrowable = new AtomicReference<>();
+      mgr.undeploy(deploymentIDRef.get(), new AsyncResultHandler<Void>() {
+        public void handle(AsyncResult<Void> ar) {
+          if (ar.failed()) {
+            undeployThrowable.set(ar.cause());
+          }
           undeployLatch.countDown();
         }
       });
       waitForLatch(undeployLatch);
+      if (undeployThrowable.get() != null) {
+        throw new IllegalStateException("Failed to undeploy", undeployThrowable.get());
+      }
       if (failure.get() != null) {
         notifier.fireTestFailure(new Failure(desc, failure.get()));
         if (failure.get() instanceof Error) {

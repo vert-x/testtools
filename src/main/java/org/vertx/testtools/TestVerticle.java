@@ -31,7 +31,7 @@ public abstract class TestVerticle extends Verticle {
   private static final Logger log = LoggerFactory.getLogger(TestVerticle.class);
 
   public void start() {
-    String methodName = container.getConfig().getString("methodName");
+    String methodName = container.config().getString("methodName");
     VertxAssert.initialize(vertx);
     try {
       Method m = getClass().getDeclaredMethod(methodName);
