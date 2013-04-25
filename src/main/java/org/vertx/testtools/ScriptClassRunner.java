@@ -42,7 +42,6 @@ public class ScriptClassRunner extends JavaClassRunner {
   @Override
   protected List<FrameworkMethod> getTestMethods() {
     List<FrameworkMethod> meths = new ArrayList<>();
-    Class<?> testClass = getTestClass().getJavaClass();
     TestVerticleInfo ann = getAnnotation();
     if (ann == null) {
       throw new IllegalArgumentException("Please annotate your test classes with TestVerticleInfo");
@@ -63,7 +62,6 @@ public class ScriptClassRunner extends JavaClassRunner {
     }
 
     Pattern funcPattern = Pattern.compile(funcRegex);
-    Path scriptsDirPath = scriptsDir.toPath();
     for (File scriptFile: testScripts) {
       Path scriptFilePath = scriptFile.toPath();
       Path parent = scriptFilePath.getParent();
@@ -78,7 +76,6 @@ public class ScriptClassRunner extends JavaClassRunner {
         Matcher m = funcPattern.matcher(sb.toString());
         while (m.find()) {
           String methodName = m.group(1);
-
           FrameworkMethod meth = new DummyFrameWorkMethod(parent + "|" + filename + "|" + methodName);
           meths.add(meth);
         }
@@ -103,12 +100,6 @@ public class ScriptClassRunner extends JavaClassRunner {
       }
     }
     return list;
-  }
-
-  @Override
-  protected String getTestName(String methodName) {
-    String[] parts = methodName.split("\\|");
-    return parts[0] + FILE_SEP + parts[1] + "#" + parts[2];
   }
 
   @Override

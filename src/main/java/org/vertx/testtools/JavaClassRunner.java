@@ -159,15 +159,12 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
       throw new IllegalArgumentException("Test classes must extend TestVerticle");
     }
     this.main = testClass.getName();
-    return getTestMethods();
+    List<FrameworkMethod> testMethods =  getTestMethods();
+    return testMethods;
   }
 
   protected List<FrameworkMethod> getTestMethods() {
     return super.computeTestMethods();
-  }
-
-  protected String getTestName(String methodName) {
-    return main + "." + methodName;
   }
 
   protected URL getClassPath(String methodName) {
@@ -186,7 +183,7 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
   protected void runChild(FrameworkMethod method, RunNotifier notifier) {
     Class<?> testClass = getTestClass().getJavaClass();
     String methodName = method.getName();
-    String testDesc = getTestName(methodName);
+    String testDesc = method.getName();
     Description desc = Description.createTestDescription(testClass, testDesc);
     notifier.fireTestStarted(desc);
     final AtomicReference<Throwable> failure = new AtomicReference<>();
