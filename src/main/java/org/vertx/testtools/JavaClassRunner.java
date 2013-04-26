@@ -70,6 +70,9 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
 
   public JavaClassRunner(Class<?> klass) throws InitializationError {
     super(klass);
+    if (System.getProperty("vertx.mods") == null) {
+      System.setProperty("vertx.mods", "build/mods");
+    }
     mgr = PlatformLocator.factory.createPlatformManager();
     setTestProperties();
   }
