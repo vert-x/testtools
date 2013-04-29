@@ -33,18 +33,18 @@ import java.io.ObjectOutputStream;
  */
 public class VertxAssert {
 
-  private static Vertx vertx;
+  private static Vertx jVertx;
   public static void initialize(Vertx vertx) {
-    VertxAssert.vertx = vertx;
+    VertxAssert.jVertx = vertx;
   }
 
-  static void handleThrowable(Throwable t) {
-    if (vertx == null) {
+  public static void handleThrowable(Throwable t) {
+    if (jVertx == null) {
       throw new IllegalStateException("Please initialise VertxAssert before use");
     }
     // Serialize the error
     JsonObject failure = new JsonObject().putString("type", "failure");
-    byte[] bytes = new byte[0];
+    byte[] bytes;
     try {
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
       ObjectOutputStream oos = new ObjectOutputStream(baos);
@@ -56,12 +56,12 @@ public class VertxAssert {
       throw new IllegalStateException("Failed to serialise error: " + ex.getMessage(), ex);
     }
     finally {
-      vertx.eventBus().send(JavaClassRunner.TESTRUNNER_HANDLER_ADDRESS, failure);
+      jVertx.eventBus().send(JavaClassRunner.TESTRUNNER_HANDLER_ADDRESS, failure);
     }
   }
 
   public static void testComplete() {
-    vertx.eventBus().send(JavaClassRunner.TESTRUNNER_HANDLER_ADDRESS, new JsonObject().putString("type", "done"));
+    jVertx.eventBus().send(JavaClassRunner.TESTRUNNER_HANDLER_ADDRESS, new JsonObject().putString("type", "done"));
   }
 
   public static void assertTrue(String message, boolean condition) {

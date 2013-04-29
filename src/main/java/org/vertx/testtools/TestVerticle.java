@@ -31,8 +31,16 @@ public abstract class TestVerticle extends Verticle {
   private static final Logger log = LoggerFactory.getLogger(TestVerticle.class);
 
   public void start() {
-    String methodName = container.config().getString("methodName");
+    initialize();
+    startTests();
+  }
+
+  protected void initialize() {
     VertxAssert.initialize(vertx);
+  }
+
+  protected void startTests() {
+    String methodName = container.config().getString("methodName");
     try {
       Method m = getClass().getDeclaredMethod(methodName);
       m.invoke(this);
@@ -40,9 +48,11 @@ public abstract class TestVerticle extends Verticle {
       InvocationTargetException it = (InvocationTargetException)e;
       Throwable targetEx = it.getTargetException();
       VertxAssert.handleThrowable(targetEx);
-    } catch (Exception e) {
+    } catch (Throwable t) {
       // Problem with invoking
-      VertxAssert.handleThrowable(e);
+      VertxAssert.handleThrowable(t);
     }
   }
+
+
 }
