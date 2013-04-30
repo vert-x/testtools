@@ -70,17 +70,15 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
 
   public JavaClassRunner(Class<?> klass) throws InitializationError {
     super(klass);
-    if (System.getProperty("vertx.mods") == null) {
-      System.setProperty("vertx.mods", "build/mods");
-    }
-    mgr = PlatformLocator.factory.createPlatformManager();
     setTestProperties();
+    mgr = PlatformLocator.factory.createPlatformManager();
   }
 
   private void setTestProperties() {
     // We set the properties here, rather than letting the build script do it
     // This means tests can run directly in an IDE with the correct properties set
     // without having to create custom test configurations
+    String modsDir = null;
     File propsFile = new File("vertx.properties");
     if (propsFile.exists()) {
       loadProps(propsFile);
@@ -88,6 +86,7 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
       propsFile = new File("gradle.properties");
       if (propsFile.exists()) {
         loadProps(propsFile);
+        modsDir = "build/mods";
       } else {
         File pom = new File("pom.xml");
         if (pom.exists()) {
@@ -100,8 +99,12 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
           } catch (FileNotFoundException e) {
             //Ignore
           }
+          modsDir = "target/mods";
         }
       }
+    }
+    if (System.getProperty("vertx.mods") == null && modsDir != null) {
+      System.setProperty("vertx.mods", modsDir);
     }
   }
 
