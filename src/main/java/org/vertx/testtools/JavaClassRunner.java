@@ -246,10 +246,8 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
       mgr.deployVerticle(main, conf, cp == null ? new URL[0] : new URL[] {cp}, 1, includes, new AsyncResultHandler<String>() {
         public void handle(AsyncResult<String> ar) {
           if (ar.succeeded()) {
-            System.out.println("Dploy succeeded");
             deploymentIDRef.set(ar.result());
           } else {
-            System.out.println("Dploy failed");
             deployThrowable.set(ar.cause());
           }
           deployLatch.countDown();
@@ -257,7 +255,6 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
       });
       waitForLatch(deployLatch);
       if (deployThrowable.get() != null) {
-        System.out.println("Dploy failed2");
         notifier.fireTestFailure(new Failure(desc, deployThrowable.get()));
         return;
       }
