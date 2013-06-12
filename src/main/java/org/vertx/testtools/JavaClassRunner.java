@@ -1,4 +1,5 @@
-package org.vertx.testtools;/*
+package org.vertx.testtools;
+/*
  * Copyright 2013 Red Hat, Inc.
  *
  * Red Hat licenses this file to you under the Apache License, version 2.0
@@ -13,7 +14,7 @@ package org.vertx.testtools;/*
  * License for the specific language governing permissions and limitations
  * under the License.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
+ *
  */
 
 import org.junit.runner.Description;
@@ -49,6 +50,8 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * Any failures are propagated from the container back to this test runner using the Vert.x event bus where they
  * are rethrown to appear to have occurred locally.
+ *
+ * @author <a href="http://tfox.org">Tim Fox</a>
  *
  */
 public class JavaClassRunner extends BlockJUnit4ClassRunner {
@@ -276,9 +279,6 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
       }
       if (failure.get() != null) {
         notifier.fireTestFailure(new Failure(desc, failure.get()));
-        if (failure.get() instanceof Error) {
-          throw (Error)failure.get();
-        }
       } else {
         notifier.fireTestFinished(desc);
       }
