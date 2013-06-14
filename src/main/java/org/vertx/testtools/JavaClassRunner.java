@@ -259,6 +259,7 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
       waitForLatch(deployLatch);
       if (deployThrowable.get() != null) {
         notifier.fireTestFailure(new Failure(desc, deployThrowable.get()));
+        notifier.fireTestFinished(desc);
         return;
       }
       waitForLatch(testLatch);
@@ -275,13 +276,14 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
       });
       waitForLatch(undeployLatch);
       if (undeployThrowable.get() != null) {
-        throw new IllegalStateException("Failed to undeploy", undeployThrowable.get());
+        notifier.fireTestFailure(new Failure(desc, undeployThrowable.get()));
+        notifier.fireTestFinished(desc);
+        return;
       }
       if (failure.get() != null) {
         notifier.fireTestFailure(new Failure(desc, failure.get()));
-      } else {
-        notifier.fireTestFinished(desc);
       }
+      notifier.fireTestFinished(desc);
     } catch (Exception e) {
       e.printStackTrace();
     }
