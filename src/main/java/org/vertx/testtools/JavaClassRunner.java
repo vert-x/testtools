@@ -37,6 +37,7 @@ import org.vertx.java.platform.PlatformManager;
 import java.io.*;
 import java.lang.annotation.Annotation;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
@@ -109,6 +110,7 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
     if (System.getProperty("vertx.mods") == null && modsDir != null) {
       System.setProperty("vertx.mods", modsDir);
     }
+    System.setProperty("vertx.idedirs", "true");
   }
 
   private void setModuleNameProp(String modOwner, String modName, String version) {
@@ -245,8 +247,16 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
       System.out.println("Starting test: " + testDesc);
       String main = getMain(methodName);
       URL cp = getClassPath(methodName);
+      List<URL> urls = new ArrayList<>();
+      if (cp != null) {
+        urls.add(cp);
+      }
+      // We also add the the standard resource directories to the cp so we can pick up mod.json and other resources
+      // without having to build the project and copy to the IDE output directory
+      urls.add(new File("src/main/resources").toURI().toURL());
+      urls.add(new File("src/test/resources").toURI().toURL());
       final AtomicReference<Throwable> deployThrowable = new AtomicReference<>();
-      mgr.deployVerticle(main, conf, cp == null ? new URL[0] : new URL[] {cp}, 1, includes, new AsyncResultHandler<String>() {
+      mgr.deployVerticle(main, conf, cp == null ? new URL[0] : urls.toArray(new URL[urls.size()]), 1, includes, new AsyncResultHandler<String>() {
         public void handle(AsyncResult<String> ar) {
           if (ar.succeeded()) {
             deploymentIDRef.set(ar.result());
