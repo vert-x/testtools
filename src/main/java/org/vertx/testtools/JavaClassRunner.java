@@ -251,10 +251,6 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
       if (cp != null) {
         urls.add(cp);
       }
-      // We also add the the standard resource directories to the cp so we can pick up mod.json and other resources
-      // without having to build the project and copy to the IDE output directory
-      urls.add(new File("src/main/resources").toURI().toURL());
-      urls.add(new File("src/test/resources").toURI().toURL());
       final AtomicReference<Throwable> deployThrowable = new AtomicReference<>();
       mgr.deployVerticle(main, conf, cp == null ? new URL[0] : urls.toArray(new URL[urls.size()]), 1, includes, new AsyncResultHandler<String>() {
         public void handle(AsyncResult<String> ar) {
