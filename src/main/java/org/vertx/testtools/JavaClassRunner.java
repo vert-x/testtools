@@ -17,6 +17,7 @@ package org.vertx.testtools;
  *
  */
 
+import org.junit.Ignore;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
@@ -197,6 +198,10 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
     String methodName = method.getName();
     String testDesc = method.getName();
     Description desc = Description.createTestDescription(testClass, testDesc);
+    if (method.getAnnotation(Ignore.class) != null) {
+        notifier.fireTestIgnored(desc);
+        return;
+    }
     notifier.fireTestStarted(desc);
     final AtomicReference<Throwable> failure = new AtomicReference<>();
     try {
