@@ -37,6 +37,7 @@ import org.vertx.java.platform.PlatformManager;
 import java.io.*;
 import java.lang.annotation.Annotation;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -250,6 +251,30 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
       List<URL> urls = new ArrayList<>();
       if (cp != null) {
         urls.add(cp);
+      }
+      ClassLoader pcl = Thread.currentThread().getContextClassLoader();
+      /*
+      We need to add entries from the platform classloader to the module classloader that's created for the verticle that
+      we deploy.
+      This is especially important if there are tests which deploy Groovy compiled Verticles that are not in the module
+      under test.
+      In this case the Groovy compiled verticle classes will be on the platform classloader. When the test verticle
+      tries to deploy the Groovy compiled verticle it will be found on the platform classloader not the module classloader
+      and that classloader will then try to load the org.vertx.groovy.platform.Verticle class which it won't find since
+      this is only available in the Groovy lang module.
+      To solve this we must add the non jar classpath entries of the platform classloader to the module classloader of
+      the test verticle so that they are loaded from there and it then also tries to load org.vertx.groovy.platform.Verticle
+      from there which it will now find since the Groovy lang module is a parent (included) by the test verticle module
+      classloader
+       */
+      if (pcl != null && pcl instanceof URLClassLoader) {
+        URLClassLoader upcl = (URLClassLoader)pcl;
+        for (URL url: upcl.getURLs()) {
+          String surl = url.toString();
+          if (!surl.endsWith(".jar") && !surl.endsWith(".zip")) {
+            urls.add(url);
+          }
+        }
       }
       final AtomicReference<Throwable> deployThrowable = new AtomicReference<>();
       mgr.deployVerticle(main, conf, cp == null ? new URL[0] : urls.toArray(new URL[urls.size()]), 1, includes, new AsyncResultHandler<String>() {
