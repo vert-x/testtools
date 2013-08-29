@@ -40,6 +40,7 @@ dependencies {
   compile "junit:junit-dep:$junitVersion"
   compile "io.vertx:vertx-core:$vertxVersion"
   compile "io.vertx:vertx-platform:$vertxVersion"
+  compile "org.apache.directory.server:apacheds-protocol-dns:$apacheDsVersion"
 }
 
 test {
