@@ -168,9 +168,6 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
 
   protected List<FrameworkMethod> computeTestMethods() {
     Class<?> testClass = getTestClass().getJavaClass();
-    if (!(TestVerticle.class.isAssignableFrom(testClass))) {
-      throw new IllegalArgumentException("Test classes must extend TestVerticle");
-    }
     this.main = testClass.getName();
     List<FrameworkMethod> testMethods =  getTestMethods();
     return testMethods;
