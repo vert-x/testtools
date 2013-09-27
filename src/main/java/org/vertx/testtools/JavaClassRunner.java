@@ -279,7 +279,7 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
         }
       }
       final AtomicReference<Throwable> deployThrowable = new AtomicReference<>();
-      mgr.deployVerticle(main, conf, cp == null ? new URL[0] : urls.toArray(new URL[urls.size()]), 1, includes, new AsyncResultHandler<String>() {
+      mgr.deployVerticle(main, conf, urls.toArray(new URL[urls.size()]), 1, includes, new AsyncResultHandler<String>() {
         public void handle(AsyncResult<String> ar) {
           if (ar.succeeded()) {
             deploymentIDRef.set(ar.result());
