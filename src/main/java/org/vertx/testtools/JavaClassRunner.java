@@ -84,7 +84,7 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
     // We set the properties here, rather than letting the build script do it
     // This means tests can run directly in an IDE with the correct properties set
     // without having to create custom test configurations
-    String modsDir = null;
+    String modsDir = System.getenv("VERTX_MODS");
     File propsFile = new File("vertx.properties");
     if (propsFile.exists()) {
       loadProps(propsFile);
@@ -92,7 +92,9 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
       propsFile = new File("gradle.properties");
       if (propsFile.exists()) {
         loadProps(propsFile);
-        modsDir = "build/mods";
+        if (modsDir == null) {
+          modsDir = "build/mods";
+        }
       } else {
         File pom = new File("pom.xml");
         if (pom.exists()) {
@@ -105,7 +107,9 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
           } catch (FileNotFoundException e) {
             //Ignore
           }
-          modsDir = "target/mods";
+          if (modsDir == null) {
+            modsDir = "target/mods";
+          }
         }
       }
     }
