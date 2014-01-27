@@ -77,7 +77,13 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
   public JavaClassRunner(Class<?> klass) throws InitializationError {
     super(klass);
     setTestProperties();
-    mgr = PlatformLocator.factory.createPlatformManager();
+    ClassLoader cl = Thread.currentThread().getContextClassLoader();
+    Thread.currentThread().setContextClassLoader(createClassLoader());
+    try {
+      mgr = PlatformLocator.factory.createPlatformManager();
+    } finally {
+      Thread.currentThread().setContextClassLoader(cl);
+    }
   }
 
   private void setTestProperties() {
@@ -339,6 +345,36 @@ public class JavaClassRunner extends BlockJUnit4ClassRunner {
     }
   }
 
+  protected ClassLoader createClassLoader() {
+    // We need to add some extra entries to the classpath so that any overrridden Vert.x platform config,
+    // e.g. cluster.xml, langs.properties etc can picked up when running the module
+    // Users can put such config either in a src/main/platform_lib directory (if they don't want it in the module)
+    // or in a src/main/resources/platform_lib directory (if they want it in the module, e.g. for fatjars)
+    List<URL> urls = new ArrayList<>();
+    try {
+      addURLs(urls, "src/main/platform_lib");
+      addURLs(urls, "src/main/resources/platform_lib");
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
 
+    return new URLClassLoader(urls.toArray(new URL[urls.size()]), getClass().getClassLoader());
+  }
+
+  private void addURLs(List<URL> urls, String dirName) throws IOException {
+    File dir = new File(dirName);
+    if (dir.exists()) {
+      urls.add(dir.getCanonicalFile().toURI().toURL());
+      File[] files = dir.listFiles();
+      if (files != null) {
+        for (File file: files) {
+          String path = file.getCanonicalPath();
+          if (path.endsWith(".jar") || path.endsWith(".zip")) {
+            urls.add(file.getCanonicalFile().toURI().toURL());
+          }
+        }
+      }
+    }
+  }
 
 }
